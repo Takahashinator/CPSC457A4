@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 For this assignment you are required to implement a linked list in java.
 Additionally the linked list must support both serial and parallel merge sort.
 
@@ -32,3 +33,6 @@ In your README file:
 
 
 
+=======
+# CPSC457A4
+>>>>>>> 98971b7638a32daab23d8c094728e286820b0b40
