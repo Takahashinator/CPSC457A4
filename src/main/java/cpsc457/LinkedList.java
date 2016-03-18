@@ -152,7 +152,7 @@ public class LinkedList<T> implements Iterable<T> {
     }
 
 	//Merge sort
-    static class MergeSort<T> {
+    public class MergeSort<T> {
 	
 		//Variables (attributes)
 			//ExecutorService
@@ -174,6 +174,71 @@ public class LinkedList<T> implements Iterable<T> {
 		//attributes (head and tail pointers)
 		
 		public void sort(LinkedList<T> list) {
+			// Check if there is only one node
+			if (list.size <= 1)
+				return;			
+			
+			list = msort(list);	
+		}
+		
+		public LinkedList msort(LinkedList list)
+		{	
+			// Split the list
+			Pair<LinkedList,LinkedList> pair = split(list);
+			
+			LinkedList list1;
+			LinkedList list2;
+			if (pair.fst().head.next != null)
+				list1 = msort(pair.fst());
+			else
+				list1 = pair.fst();
+			
+			if (pair.snd().head.next != null)
+				list2 = msort(pair.snd());
+			else
+				list2 = pair.snd();
+			
+			// Time to merge!
+			return merge(list1, list2);			
+		}
+		
+		// merges two linked lists and returns the merged list head
+		public LinkedList merge(LinkedList list1, LinkedList list2){
+			LinkedList<Node> LL = new LinkedList();
+			Node head1 = list1.head;
+			Node head2 = list2.head;
+			
+			while (head1.next != null && head2.next != null)
+			{
+				// one list is empty
+				if (head1 == null)
+				{
+					LL.append(head2);
+					head2 = head2.next;
+					continue;
+				}
+				if (head2 == null)
+				{
+					LL.append(head1);
+					head1 = head1.next;
+					continue;
+				}
+				
+				// Both heads have a value
+				// Assuming here DESCENDING list from head.
+				if (head1.contents.compareTo(head2.contents))
+				{
+					LL.append(head1);
+					head1 = head1.next;
+				}
+				else
+				{
+					LL.append(head2);
+					head2 = head2.next;
+				}
+			}
+			
+			return LL;
 		}
 
 		public void parallel_sort(LinkedList<T> list) {			
@@ -204,9 +269,9 @@ public class LinkedList<T> implements Iterable<T> {
 	
 	
 	// nodes used in linked list
-	public class Node<T> {
-		private T contents;
-		private Node next;
+	public class Node<T extends Comparable<T>> {
+		public T contents;
+		public Node next;
 		
 		public Node()
 		{
@@ -241,5 +306,29 @@ public class LinkedList<T> implements Iterable<T> {
 		}
 	}
 
- 
+	// Helper Functions	
+	public Pair<LinkedList,LinkedList> split(LinkedList list)
+	{
+		// TODO
+		// 1. Find the center of the LL
+		int index = list.size/2;
+		LinkedList a = new LinkedList();
+		LinkedList b = new LinkedList();
+		
+		// 2. Set the "left of center" node.next = null
+		Node temp = list.head;
+		for (int i = 0; i < index; i++)
+		{
+			a.append(temp.getContents());
+			temp = temp.next;
+		}
+		
+		for (int i = index; i < list.size; i++)
+		{
+			b.append(temp.getContents());
+			temp = temp.next;
+		}
+		
+		return new Pair(a,b);
+	}
 }
