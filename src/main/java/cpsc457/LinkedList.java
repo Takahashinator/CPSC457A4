@@ -126,7 +126,7 @@ public class LinkedList<T> implements Iterable<T> {
 				return null;
 		}
 		
-		return pointer.contents;
+		return (T)pointer.contents;
     }
 	
 	@Override
