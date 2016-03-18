@@ -177,6 +177,70 @@ public class LinkedList<T> implements Iterable<T> {
 		//attributes (head and tail pointers)
 		
 		public void sort(LinkedList<T> list) {
+			// Check if there is only one node
+			if (list.size <= 1)
+				return;			
+			
+			Node sortedHead = msort(list.head);	
+
+			list.head = sortedHead;
+		}
+		
+		public Node msort(Node head)
+		{	
+			// Split the list
+			Pair<Node,Node> pair = split(head);
+			
+			Node head1;
+			Node head2;
+			if (pair.fst().next != null)
+				head1 = msort(pair.fst());
+			else
+				head1 = pair.fst();
+			
+			if (pair.snd().next != null)
+				head2 = msort(pair.snd());
+			else
+				head2 = pair.snd();
+			
+			// Time to merge!
+			return merge(head1, head2);			
+		}
+		
+		// merges two linked lists and returns the merged list head
+		public Node merge(Node head1, Node head2){
+			LinkedList<Node> LL = new LinkedList();			
+			while (head1.next != null && head2.next != null)
+			{
+				// one list is empty
+				if (head1 == null)
+				{
+					LL.append(head2);
+					head2 = head2.next;
+					continue;
+				}
+				if (head2 == null)
+				{
+					LL.append(head1);
+					head1 = head1.next;
+					continue;
+				}
+				
+				// Both heads have a value
+				// Assuming here DESCENDING list from head.
+				if (head1.val > head2.val)
+				{
+					LL.append(head1);
+					head1 = head1.next;
+				}
+				else
+				{
+					LL.append(head2);
+					head2 = head2.next;
+				}
+			}
+			
+			return LL.head;
 		}
 
 		public void parallel_sort(LinkedList<T> list) {			
@@ -205,5 +269,20 @@ public class LinkedList<T> implements Iterable<T> {
 			//	 second list to the tail of the new merged link list
 	}
 
- 
+	// Helper Functions
+	public int getSize(Node head)
+	{
+		// TODO
+		return 0;
+	}
+	
+	public Pair<T,T> split(Node head)
+	{
+		// TODO
+		// 1. Find the center of the LL
+		// 2. Set the "left of center" node.next = null
+		a = new Node();
+		b = new Node();
+		return new Pair(a,b);
+	}
 }
