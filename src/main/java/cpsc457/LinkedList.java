@@ -43,15 +43,12 @@ public class LinkedList<T> implements Iterable<T> {
 	
 	//Variables (attributes)
 		//Head
-		private static Node head;
+		private Node head;
 		//Tail
-		private static Node tail;
+		private Node tail;
 		//Size (not required)
-		private static int size;
+		private int size;
 		//Critical Section
-		
-		public Node next = null;
-		public T contents = null;
  
 	//Constructor
     public LinkedList() {
@@ -267,6 +264,45 @@ public class LinkedList<T> implements Iterable<T> {
 			
 			//4- Once one of the two lists is done, append the rest of the 
 			//	 second list to the tail of the new merged link list
+	}
+	
+	
+	// nodes used in linked list
+	public class Node<T> {
+		private T contents;
+		private Node next;
+		
+		public Node()
+		{
+			contents = null;
+			next = null;
+		}
+		
+		public Node(T t)
+		{
+			contents = t;
+			next = null;
+		}
+		
+		public T getContents()
+		{
+			return contents;
+		}
+		
+		public void setContents(T t)
+		{
+			contents = t;
+		}
+		
+		public Node getNext()
+		{
+			return next;
+		}
+		
+		public void setNext(Node n)
+		{
+			next = n;
+		}
 	}
 
 	// Helper Functions	
