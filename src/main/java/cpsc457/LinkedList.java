@@ -269,13 +269,7 @@ public class LinkedList<T> implements Iterable<T> {
 			//	 second list to the tail of the new merged link list
 	}
 
-	// Helper Functions
-	public int getSize(Node head)
-	{
-		// TODO
-		return 0;
-	}
-	
+	// Helper Functions	
 	public Pair<T,T> split(Node head)
 	{
 		// TODO
