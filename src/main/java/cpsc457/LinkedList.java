@@ -43,14 +43,14 @@ public class LinkedList<T> implements Iterable<T> {
 	
 	//Variables (attributes)
 		//Head
-		private static LinkedList head;
+		private static Node head;
 		//Tail
-		private static LinkedList tail;
+		private static Node tail;
 		//Size (not required)
 		private static int size;
 		//Critical Section
 		
-		public LinkedList next = null;
+		public Node next = null;
 		public T contents = null;
  
 	//Constructor
@@ -92,8 +92,8 @@ public class LinkedList<T> implements Iterable<T> {
 	
 	//Adds a new node to the list at the end (tail)
     public LinkedList<T> append(T t) {
-		LinkedList newNode = new LinkedList();
-		newNode.contents = t;
+		Node newNode = new Node();
+		newNode.setContents(t);
 		//Check if it is empty 
 		if (size == 0)
 			head = tail = newNode;
@@ -101,7 +101,7 @@ public class LinkedList<T> implements Iterable<T> {
 		else
 		{
 			//tail.next = t    then		tail = t
-			tail.next = newNode;
+			tail.setNext(newNode);
 			tail = newNode;
 		}	
 		
@@ -115,18 +115,18 @@ public class LinkedList<T> implements Iterable<T> {
     public T get(int index) {
 		//Iterate through the list
 			//Create a new pointer that starts at the head
-		LinkedList pointer = new LinkedList();
+		Node pointer = new Node();
 		pointer = head;
 			//Keeps moving forward (pt = pt.next) for index times
 		for(int i = 0; i <= index; i++)
 		{
-			pointer = pointer.next;
+			pointer = pointer.getNext();
 		//Make sure not to exceed the size of the list (else return null)
-			if(pointer.contents == null)
+			if(pointer.getContents() == null)
 				return null;
 		}
 		
-		return (T)pointer.contents;
+		return (T)pointer.getContents();
     }
 	
 	@Override
