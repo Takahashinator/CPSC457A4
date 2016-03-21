@@ -1,6 +1,7 @@
 package cpsc457;
 
 import cpsc457.doNOTmodify.Pair;
+import cpsc457.Node;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -152,7 +153,7 @@ public class LinkedList<T> implements Iterable<T> {
     }
 
 	//Merge sort
-    public  static class MergeSort<T> {
+    public static class MergeSort<T> {
 	
 		//Variables (attributes)
 			//ExecutorService
@@ -181,27 +182,6 @@ public class LinkedList<T> implements Iterable<T> {
 			Node sortedHead = msort(list.head);	
 
 			list.head = sortedHead;
-		}
-		
-		public Node msort(Node head)
-		{	
-			// Split the list
-			Pair<Node,Node> pair = split(head);
-			
-			Node head1;
-			Node head2;
-			if (pair.fst().next != null)
-				head1 = msort(pair.fst());
-			else
-				head1 = pair.fst();
-			
-			if (pair.snd().next != null)
-				head2 = msort(pair.snd());
-			else
-				head2 = pair.snd();
-			
-			// Time to merge!
-			return merge(head1, head2);			
 		}
 		
 		public Node msort(Node head)
@@ -291,8 +271,27 @@ public class LinkedList<T> implements Iterable<T> {
 		// Helper Functions	
 		public Pair<Node,Node> split(Node node)
 		{
-			// TODO
-			// 1. Find the center of the LL
+			Node a = node;
+			Node walker1 = node;
+			Node walker2 = node;
+			
+			// Just covering the bases if the list happens to be empty
+			if (node == null)
+				return new Pair(null,null);
+			
+			while (walker2.next != null && walker2.next.next != null)
+			{
+				walker1 = walker1.next;
+				walker2 = walker2.next.next;
+			}	
+			
+			Node b = walker1.next;
+			walker1.next = null;
+			
+			return new Pair(a,b);
+			
+			// Alternate implementation - UNTESTED
+/* 			// 1. Find the center of the LL
 			//int index = list.size/2;
 			Node a = new Node();
 			Node b = new Node();
@@ -317,62 +316,7 @@ public class LinkedList<T> implements Iterable<T> {
 			
 			node.next = null;
 			b = temp.next;
-			return new Pair(a,b);
-						
-			// 2. Set the "left of center" node.next = null
-			/*
-			Node temp = list.head;
-			for (int i = 0; i < index; i++)
-			{
-				a.append(temp.getContents());
-				temp = temp.next;
-			}
-			
-			for (int i = index; i < list.size; i++)
-			{
-				b.append(temp.getContents());
-				temp = temp.next;
-			}
-			*/
-		}
-	}
-	
-	
-	// nodes used in linked list
-	public static class Node<T extends Comparable<T>> {
-		public T contents;
-		public Node next;
-		
-		public Node()
-		{
-			contents = null;
-			next = null;
-		}
-		
-		public Node(T t)
-		{
-			contents = t;
-			next = null;
-		}
-		
-		public T getContents()
-		{
-			return contents;
-		}
-		
-		public void setContents(T t)
-		{
-			contents = t;
-		}
-		
-		public Node getNext()
-		{
-			return next;
-		}
-		
-		public void setNext(Node n)
-		{
-			next = n;
+			return new Pair(a,b); */
 		}
 	}
 }
