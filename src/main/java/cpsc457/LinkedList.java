@@ -250,17 +250,26 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			if (list.size <= 1)
 				return;	
 			
-			Node sortedHead = par_msort(list.head);	
+			int maxdepth = calcMaxDepth(list);
+			Node sortedHead = par_msort(list.head, maxdepth);	
 
 			list.head = sortedHead;
 		}
 		
-		public Node par_msort(Node head)
+		public int calcMaxDepth(LinkedList<T> list)
+		{
+			//TODO Determine max depth using some calculation
+			// *note* this can also be done dynamically, making this
+			// method redundant
+			return 0;
+		}
+		
+		public Node par_msort(Node head, int maxDepth)
 		{	
 			Pair<Node,Node> pair = split(head);
 			// What to do?
 			// Find out how many threads are availiable
-			// Determine max depth using some calculation or dynamically
+			
 			Node head1;
 			Node head2;
 /* 			if (newthreadavailiable && more splitting needed)
