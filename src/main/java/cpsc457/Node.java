@@ -15,24 +15,4 @@ public class Node<T extends Comparable<T>> {
 		contents = t;
 		next = null;
 	}
-	
-	public T getContents()
-	{
-		return contents;
-	}
-	
-	public void setContents(T t)
-	{
-		contents = t;
-	}
-	
-	public Node getNext()
-	{
-		return next;
-	}
-	
-	public void setNext(Node n)
-	{
-		next = n;
-	}
 }

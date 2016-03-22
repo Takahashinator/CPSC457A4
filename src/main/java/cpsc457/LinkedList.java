@@ -101,7 +101,7 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 		else
 		{
 			//tail.next = t    then		tail = t
-			tail.setNext(newNode);
+			tail.next = newNode;
 			tail = newNode;
 		}
 		
@@ -119,19 +119,50 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			//Keeps moving forward (pt = pt.next) for index times
 		for(int i = 0; i <= index; i++)
 		{
-			pointer = pointer.getNext();
+			pointer = pointer.next;
 		//Make sure not to exceed the size of the list (else return null)
-			if(pointer.getContents() == null)
+			if(pointer.contents == null)
 				return null;
 		}
 		
-		return (T)pointer.getContents();
+		return (T)pointer.contents;
     }
 	
 	@Override
     public Iterator<T> iterator() {
-		return null;
+		return new ListIterator();
     }
+	
+	public class ListIterator implements Iterator<T>
+	{
+		private Node cursor;
+		
+		public ListIterator()
+		{
+			cursor = head;
+		}
+		
+		public boolean hasNext()
+		{
+			return cursor.next.contents != null;
+		}
+		
+		public T next()
+		{
+			if(this.hasNext())
+			{
+				Node current = cursor;
+				cursor = cursor.next;
+				return (T)current.contents;
+			}
+			throw new NoSuchElementException();
+		}
+		
+		public void remove()
+		{
+			//throw new OperationNotSupportedException();
+		}
+	}
 	
 	//The next two functions, are being called by the static functions at the top of this page
 	//These functions are just wrappers to prevent the static function from deciding which
@@ -219,22 +250,26 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 				return head1;
 
 			// Setup the pointers
-			Node leftPointer = head1.next;
-			Node rightPointer = head2.next;
+			Node leftPointer = head1;
+			Node rightPointer = head2;
 			if (head1.contents.compareTo(head2.contents) < 0)
 			{
 				headPointer = head1;
-				headPointer.next = head2;
-				walkPointer = head2;
+				walkPointer = head1;
+				leftPointer = leftPointer.next;
+				//headPointer.next = head2;
+				//walkPointer = head2;
 			}
 			else
 			{
 				headPointer = head2;
-				headPointer.next = head1;
-				walkPointer = head1;
+				walkPointer = head2;
+				rightPointer = rightPointer.next;
+				//headPointer.next = head1;
+				//walkPointer = head1;
 			}
 
-			while (leftPointer != null || rightPointer != null)
+			while (leftPointer != null && rightPointer != null)
 			{
 				// Both pointers have a value
 				// Assuming here DESCENDING list from head.
