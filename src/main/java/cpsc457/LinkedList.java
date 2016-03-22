@@ -66,12 +66,12 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 		Node ptr = head;
 		while (ptr != null)
 		{
-			System.out.print("[");
-			System.out.print(ptr.contents);
-			System.out.print("]-");
+			System.console().writer().print("[");
+			System.console().writer().print(ptr.contents);
+			System.console().writer().print("]-");
 			ptr = ptr.next;
 		}
-		System.out.println("");
+		System.console().writer().println("");
 	}
 
 	//Returns the size of the list
@@ -114,7 +114,7 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 		else
 		{
 			//tail.next = t    then		tail = t
-			tail.setNext(newNode);
+			tail.next = newNode;
 			tail = newNode;
 		}
 		
@@ -132,13 +132,13 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			//Keeps moving forward (pt = pt.next) for index times
 		for(int i = 0; i <= index; i++)
 		{
-			pointer = pointer.getNext();
+			pointer = pointer.next;
 		//Make sure not to exceed the size of the list (else return null)
-			if(pointer.getContents() == null)
+			if(pointer.contents == null)
 				return null;
 		}
 		
-		return (T)pointer.getContents();
+		return (T)pointer.contents;
     }
 	
 	
@@ -149,7 +149,7 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 
             @Override
             public boolean hasNext() {
-                return (ptr != null || ptr.next != null);
+                return (ptr != null && ptr.next != null);
             }
 
             @Override
@@ -158,9 +158,10 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 				{
 					T val = (T)ptr.contents;
 					if (hasNext())
-						ptr=ptr.next;					
+						ptr=ptr.next;	
+					return val;					
 				}
-				return val;
+				return null;
             }
 
             @Override
@@ -242,64 +243,6 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			
 			// Time to merge!
 			return merge(head1, head2);			
-		}
-		
-		// merges two linked lists and returns the merged list head
-		public Node merge(Node head1, Node head2){
-			Node headPointer;
-			Node walkPointer;
-			// Check some specifit conditions
-			if (head1 == null && head2 == null)
-				return null;
-			if (head1 == null)
-				return head2;
-			if (head2 == null)
-				return head1;
-
-			// Setup the pointers
-			Node leftPointer = head1.next;
-			Node rightPointer = head2.next;
-			if (head1.contents.compareTo(head2.contents) < 0)
-			{
-				headPointer = head1;
-				headPointer.next = head2;
-				walkPointer = head2;
-			}
-			else
-			{
-				headPointer = head2;
-				headPointer.next = head1;
-				walkPointer = head1;
-			}
-
-			while (leftPointer != null || rightPointer != null)
-			{
-				// Both pointers have a value
-				// Assuming here DESCENDING list from head.
-				if (leftPointer.contents.compareTo(rightPointer.contents) < 0)
-				{
-					walkPointer.next = leftPointer;
-					leftPointer = leftPointer.next;
-				}
-				else
-				{
-					walkPointer.next = rightPointer;
-					rightPointer = rightPointer.next;
-				}
-			}
-
-			// If there are still nodes on the right but not on the left
-			if (leftPointer == null && rightPointer != null)
-			{
-				walkPointer.next = rightPointer;
-			}
-			// If there are still nodes on the left but not on the right
-			else if (rightPointer == null && leftPointer != null)
-			{
-				walkPointer.next = leftPointer;
-			}
-
-			return headPointer;
 		}
 
 		public void parallel_sort(LinkedList<T> list) 
@@ -385,34 +328,70 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			walker1.next = null;
 			
 			return new Pair(a,b);
-			
-			// Alternate implementation - UNTESTED
-/* 			// 1. Find the center of the LL
-			//int index = list.size/2;
-			Node a = new Node();
-			Node b = new Node();
-			Node temp = node;
-			
-			// Find size of list
-			int i = 0;
-			a = node;
-			for(; temp.next != null; i++)
+		}
+		
+		// merges two linked lists and returns the merged list head
+		public Node merge(Node head1, Node head2){
+			Node headPointer;
+			Node walkPointer;
+			// Check some specifit conditions
+			if (head1 == null && head2 == null)
+				return null;
+			if (head1 == null)
+				return head2;
+			if (head2 == null)
+				return head1;
+
+			// Setup the pointers
+			Node leftPointer = head1;
+			Node rightPointer = head2;
+			if (head1.contents.compareTo(head2.contents) < 0)
 			{
-				temp = temp.next;
+				headPointer = head1;
+				walkPointer = head1;
+				leftPointer = leftPointer.next;
+				//headPointer.next = head2;
+				//walkPointer = head2;
 			}
-			
-			// Find middle of list
-			i = i/2;
-			temp = node;
-			for(int j = 0; j < i; j++)
+			else
 			{
-				node = node.next;
-				temp = temp.next;
+				headPointer = head2;
+				walkPointer = head2;
+				rightPointer = rightPointer.next;
+				//headPointer.next = head1;
+				//walkPointer = head1;
 			}
-			
-			node.next = null;
-			b = temp.next;
-			return new Pair(a,b); */
+
+			while (leftPointer != null && rightPointer != null)
+			{
+				// Both pointers have a value
+				// Assuming here DESCENDING list from head.
+				if (leftPointer.contents.compareTo(rightPointer.contents) < 0)
+				{
+					walkPointer.next = leftPointer;
+					leftPointer = leftPointer.next;
+				}
+				else
+				{
+					walkPointer.next = rightPointer;
+					rightPointer = rightPointer.next;
+				}
+				// Pointer walks...
+				walkPointer = walkPointer.next;
+			}
+
+			// If there are still nodes on the right but not on the left
+			if (leftPointer == null && rightPointer != null)
+			{
+				walkPointer.next = rightPointer;
+			}
+			// If there are still nodes on the left but not on the right
+			else if (rightPointer == null && leftPointer != null)
+			{
+				walkPointer.next = leftPointer;
+			}
+
+			return headPointer;
 		}
 	}
 }
