@@ -8,7 +8,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LinkedList<T> implements Iterable<T> {
+public class LinkedList<T extends Comparable> implements Iterable<T> {
  
 	//####################
 	//# Static Functions #
@@ -90,8 +90,10 @@ public class LinkedList<T> implements Iterable<T> {
 	
 	//Adds a new node to the list at the end (tail)
     public LinkedList<T> append(T t) {
+		if (t == null)
+			return this;
 		Node newNode = new Node();
-		newNode.contents = (Comparable)t;
+		newNode.contents = t;
 		//Check if it is empty 
 		if (size == 0)
 			head = tail = newNode;
@@ -101,7 +103,7 @@ public class LinkedList<T> implements Iterable<T> {
 			//tail.next = t    then		tail = t
 			tail.setNext(newNode);
 			tail = newNode;
-		}	
+		}
 		
 		//Do not forget to increment the size by 1 (if you have it as an attribute)
 		size++;
@@ -113,8 +115,7 @@ public class LinkedList<T> implements Iterable<T> {
     public T get(int index) {
 		//Iterate through the list
 			//Create a new pointer that starts at the head
-		Node pointer = new Node();
-		pointer = head;
+		Node pointer = head;
 			//Keeps moving forward (pt = pt.next) for index times
 		for(int i = 0; i <= index; i++)
 		{
@@ -153,7 +154,7 @@ public class LinkedList<T> implements Iterable<T> {
     }
 
 	//Merge sort
-    public static class MergeSort<T> {
+    public static class MergeSort<T extends Comparable> {
 	
 		//Variables (attributes)
 			//ExecutorService
