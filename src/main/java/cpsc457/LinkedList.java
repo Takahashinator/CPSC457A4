@@ -60,6 +60,19 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 		size = 0;
 		//Create new instance for the critical section
     }
+	
+	public void printContents()
+	{
+		Node ptr = head;
+		while (ptr != null)
+		{
+			System.out.print("[");
+			System.out.print(ptr.contents);
+			System.out.print("]-");
+			ptr = ptr.next;
+		}
+		System.out.println("");
+	}
 
 	//Returns the size of the list
     public int size() {
@@ -128,9 +141,36 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 		return (T)pointer.getContents();
     }
 	
+	
 	@Override
     public Iterator<T> iterator() {
-		return null;
+		Iterator<T> it = new Iterator<T>() {
+
+            private T val;
+			private Node ptr = head;
+
+            @Override
+            public boolean hasNext() {
+                return (ptr != null && ptr.next != null);
+            }
+
+            @Override
+            public T next() {
+				if (ptr != null)
+				{
+					val = (T)ptr.contents;
+					if (hasNext())
+						ptr=ptr.next;					
+				}
+				return val;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException();
+            }
+        };
+        return it;
     }
 	
 	//The next two functions, are being called by the static functions at the top of this page
@@ -264,7 +304,43 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			return headPointer;
 		}
 
-		public void parallel_sort(LinkedList<T> list) {			
+		public void parallel_sort(LinkedList<T> list) 
+		{
+			if (list.size <= 1)
+				return;	
+			
+			Node sortedHead = par_msort(list.head);	
+
+			list.head = sortedHead;
+		}
+		
+		public Node par_msort(Node head)
+		{	
+			Pair<Node,Node> pair = split(head);
+			// What to do?
+			// Find out how many threads are availiable
+			// Determine max depth using some calculation or dynamically
+			Node head1;
+			Node head2;
+/* 			if (newthreadavailiable && more splitting needed)
+			{
+				// create new thread
+				head1 = par_msort(pair.fst()) on new thread
+			}
+			else	
+				head1 = msort(pair.fst())
+			
+			if (newthreadavailiable && more splitting needed)
+			{
+				// create new thread
+				head2 = par_msort(pair.snd()) on new thread
+			}
+			else
+				head2 = msort(pair.snd(); */
+			
+			// merge... but dont attempt to merge until BOTH results are availiable
+			//return merge(head1, head2);
+			return null;
 		}
 		
 		//#########
