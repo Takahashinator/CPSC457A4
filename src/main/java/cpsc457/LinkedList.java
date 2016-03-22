@@ -47,9 +47,12 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 		private Node head;
 		//Tail
 		private Node tail;
+		private const maxThreads = 10;
 		//Size (not required)
 		private int size;
 		//Critical Section
+		private ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
+		private int numThreadsUsed = 0; // Must be protected in critical section!
  
 	//Constructor
     public LinkedList() {
@@ -250,48 +253,90 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 			if (list.size <= 1)
 				return;	
 			
-			int maxdepth = calcMaxDepth(list);
-			Node sortedHead = par_msort(list.head, maxdepth);	
+			//int maxdepth = calcMaxDepth(list);
+			Node sortedHead = par_msort(list.head);	
 
 			list.head = sortedHead;
 		}
 		
-		public int calcMaxDepth(LinkedList<T> list)
+/* 		public int calcMaxDepth(LinkedList<T> list)
 		{
 			//TODO Determine max depth using some calculation
 			// *note* this can also be done dynamically, making this
 			// method redundant
 			return 0;
-		}
+		} */
 		
-		public Node par_msort(Node head, int maxDepth)
+		// Local par_msort method only to be used on the top level merge
+		public Node par_msort(Node head)
 		{	
 			Pair<Node,Node> pair = split(head);
-			// What to do?
-			// Find out how many threads are availiable
 			
-			Node head1;
-			Node head2;
-/* 			if (newthreadavailiable && more splitting needed)
+			Node head1 = null;
+			Node head2 = null;
+			Future future1;
+			Future future2;
+ 			if (numThreadsUsed >= maxThreads && pair.fst().next != null)
 			{
 				// create new thread
-				head1 = par_msort(pair.fst()) on new thread
+				Runnable th1 = new parMsortThread(pair.fst());
+				future1 = executor.submit(th1);
 			}
 			else	
 				head1 = msort(pair.fst())
 			
-			if (newthreadavailiable && more splitting needed)
+			if (numThreadsUsed >= maxThreads && pair.snd().next != null)
 			{
 				// create new thread
-				head2 = par_msort(pair.snd()) on new thread
+				Runnable th2 = new parMsortThread(pair.snd());
+				future2 = executor.submit(th2);
 			}
 			else
-				head2 = msort(pair.snd(); */
+				head2 = msort(pair.snd();
 			
-			// merge... but dont attempt to merge until BOTH results are availiable
-			//return merge(head1, head2);
-			return null;
+			// merge... but dont attempt to merge until BOTH results are availiable		
+			return merge(head1, head2);
 		}
+		
+private class parMsortThread implements Runnable {
+
+	Node head;
+	
+	parMsortThread(Node head) {
+		this.head = head;
+	}
+	
+	@Override
+	public void run() {
+			// Every time a new thread is run we increment the threads used counter
+			numThreadsUsed++;
+			Pair<Node,Node> pair = split(head);
+			
+			Node head1;
+			Node head2;
+ 			if (numThreadsUsed >= maxThreads && pair.fst().next != null)
+			{
+				// create new thread
+				Runnable th1 = new parMsortThread(pair.fst());
+				head1 = executor.submit(th1);
+			}
+			else	
+				head1 = msort(pair.fst())
+			
+			if (numThreadsUsed >= maxThreads && pair.snd().next != null)
+			{
+				// create new thread
+				Runnable th2 = new parMsortThread(pair.snd());
+				head2 = executor.submit(th2);
+			}
+			else
+				head2 = msort(pair.snd();
+			
+			numThreadsUsed--;
+			// merge... but dont attempt to merge until BOTH results are availiable			
+			return merge(head1, head2);
+	}
+}
 		
 		//#########
 		//# Steps #
