@@ -145,20 +145,18 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 	@Override
     public Iterator<T> iterator() {
 		Iterator<T> it = new Iterator<T>() {
-
-            private T val;
-			private Node ptr = head;
+            private Node ptr = head;
 
             @Override
             public boolean hasNext() {
-                return (ptr != null && ptr.next != null);
+                return (ptr != null || ptr.next != null);
             }
 
             @Override
             public T next() {
 				if (ptr != null)
 				{
-					val = (T)ptr.contents;
+					T val = (T)ptr.contents;
 					if (hasNext())
 						ptr=ptr.next;					
 				}
