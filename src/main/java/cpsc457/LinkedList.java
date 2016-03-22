@@ -350,16 +350,12 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 				headPointer = head1;
 				walkPointer = head1;
 				leftPointer = leftPointer.next;
-				//headPointer.next = head2;
-				//walkPointer = head2;
 			}
 			else
 			{
 				headPointer = head2;
 				walkPointer = head2;
 				rightPointer = rightPointer.next;
-				//headPointer.next = head1;
-				//walkPointer = head1;
 			}
 
 			while (leftPointer != null && rightPointer != null)
@@ -376,7 +372,7 @@ public class LinkedList<T extends Comparable> implements Iterable<T> {
 					walkPointer.next = rightPointer;
 					rightPointer = rightPointer.next;
 				}
-				// Pointer walks...
+				// walkPointer walks...
 				walkPointer = walkPointer.next;
 			}
 

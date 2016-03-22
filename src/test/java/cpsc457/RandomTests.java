@@ -46,6 +46,39 @@ public class RandomTests {
     // these tests are primarilly (but not exclusively)
     // how we will evaluate the correctness of your code
 
+	@Test
+    public void sort_list_serial() {
+        Random r = new Random();
+        for(int k=0; k<1; k++) {
+            int count = 15 + r.nextInt(3);
+            int [] input = new int [count];
+            LinkedList<Integer> list = new LinkedList<Integer>();
+
+            for (int i = 0; i < count; i++) {
+                int rval = r.nextInt(count);
+                input[i] = rval;
+                list.append(rval);
+            }
+			
+			System.console().writer().println("Serial Unsorted List:");
+			list.printContents();
+            LinkedList.sort(list);
+			System.console().writer().println("Serial Sorted List:");
+			list.printContents();
+
+            int i = 0;
+            Integer prev = Integer.MIN_VALUE;
+            for (Integer num : list) {
+                if(num < prev) {
+                    dumpTest(input);
+                    assertTrue(num + " found before " + prev + " at index " + i, num >= prev);
+                }
+
+                prev = num;
+                i++;
+            }
+        }
+    }
 
     @Test
     public void sort_lots_of_small_random_lists_in_serial() {
