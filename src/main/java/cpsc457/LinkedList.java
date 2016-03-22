@@ -207,39 +207,60 @@ public class LinkedList<T> implements Iterable<T> {
 		
 		// merges two linked lists and returns the merged list head
 		public Node merge(Node head1, Node head2){
-			LinkedList<Node> LL = new LinkedList();
-			
-			while (head1.next != null && head2.next != null)
+			Node headPointer;
+			Node walkPointer;
+			// Check some specifit conditions
+			if (head1 == null && head2 == null)
+				return null;
+			if (head1 == null)
+				return head2;
+			if (head2 == null)
+				return head1;
+
+			// Setup the pointers
+			Node leftPointer = head1.next;
+			Node rightPointer = head2.next;
+			if (head1.contents.compareTo(head2.contents) < 0)
 			{
-				// one list is empty
-				if (head1 == null)
-				{
-					LL.append(head2);
-					head2 = head2.next;
-					continue;
-				}
-				if (head2 == null)
-				{
-					LL.append(head1);
-					head1 = head1.next;
-					continue;
-				}
-				
-				// Both heads have a value
+				headPointer = head1;
+				headPointer.next = head2;
+				walkPointer = head2;
+			}
+			else
+			{
+				headPointer = head2;
+				headPointer.next = head1;
+				walkPointer = head1;
+			}
+
+			while (leftPointer != null || rightPointer != null)
+			{
+				// Both pointers have a value
 				// Assuming here DESCENDING list from head.
-				if (head1.contents.compareTo(head2.contents) < 0)
+				if (leftPointer.contents.compareTo(rightPointer.contents) < 0)
 				{
-					LL.append(head1);
-					head1 = head1.next;
+					walkPointer.next = leftPointer;
+					leftPointer = leftPointer.next;
 				}
 				else
 				{
-					LL.append(head2);
-					head2 = head2.next;
+					walkPointer.next = rightPointer;
+					rightPointer = rightPointer.next;
 				}
 			}
-			
-			return LL.head;
+
+			// If there are still nodes on the right but not on the left
+			if (leftPointer == null && rightPointer != null)
+			{
+				walkPointer.next = rightPointer;
+			}
+			// If there are still nodes on the left but not on the right
+			else if (rightPointer == null && leftPointer != null)
+			{
+				walkPointer.next = leftPointer;
+			}
+
+			return headPointer;
 		}
 
 		public void parallel_sort(LinkedList<T> list) {			
