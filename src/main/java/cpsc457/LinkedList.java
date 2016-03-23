@@ -276,7 +276,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			Node<T> head2 = null;
 			Future future1;
 			Future future2;
- 			if (numThreadsUsed >= maxThreads && pair.fst().next != null)
+ 			if (numThreadsUsed <= maxThreads && pair.fst().next != null)
 			{
 				// create new thread
 				Runnable th1 = new parMsortThread(pair.fst());
@@ -285,7 +285,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			else	
 				head1 = msort(pair.fst());
 			
-			if (numThreadsUsed >= maxThreads && pair.snd().next != null)
+			if (numThreadsUsed <= maxThreads && pair.snd().next != null)
 			{
 				// create new thread
 				Runnable th2 = new parMsortThread(pair.snd());
@@ -316,7 +316,7 @@ private class parMsortThread<T extends Comparable<T>> implements Runnable {
 			Node<T> head2 = null;
 			Future future1;
 			Future future2;
- 			if (numThreadsUsed >= maxThreads && pair.fst().next != null)
+ 			if (numThreadsUsed <= maxThreads && pair.fst().next != null)
 			{
 				// create new thread
 				Runnable th1 = new parMsortThread(pair.fst());
@@ -325,7 +325,7 @@ private class parMsortThread<T extends Comparable<T>> implements Runnable {
 			else	
 				head1 = msort(pair.fst());
 			
-			if (numThreadsUsed >= maxThreads && pair.snd().next != null)
+			if (numThreadsUsed <= maxThreads && pair.snd().next != null)
 			{
 				// create new thread
 				Runnable th2 = new parMsortThread(pair.snd());
