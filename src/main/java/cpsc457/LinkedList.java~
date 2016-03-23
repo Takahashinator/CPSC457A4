@@ -296,11 +296,15 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			
 			if (future1 != null)
 			{
-				head1 = (Node<T>)future1.get();			
+					while (!future1.isDone())
+					{}
+					head1 = (Node<T>)future1.get();			
 			}
 			if (future2 != null)
 			{
-				head2 = (Node<T>)future2.get();							
+					while (!future2.isDone())
+					{}
+					head2 = (Node<T>)future2.get();							
 			}		
 			
 			// merge... but dont attempt to merge until BOTH results are availiable		
@@ -345,11 +349,15 @@ private class parMsortThread<T extends Comparable<T>> implements Runnable {
 				
 			if (future1 != null)
 			{
-				head1 = (Node<T>)future1.get();							
+					while (!future1.isDone())
+					{}
+					head1 = (Node<T>)future1.get();							
 			}
 			if (future2 != null)
 			{
-				head2 = (Node<T>)future2.get();			
+					while (!future2.isDone())
+					{}
+					head2 = (Node<T>)future2.get();			
 			}
 
 			
