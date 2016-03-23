@@ -248,10 +248,6 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			return merge(head1, head2);			
 		}
 
-
-
-
-
 		public <T extends Comparable<T>> void parallel_sort(LinkedList<T> list) 
 		{
 			if (list.size <= 1)
@@ -278,139 +274,96 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			
 			Node<T> head1 = null;
 			Node<T> head2 = null;
-			Future<Node<T>> future = null;
-
-			if(pair.fst() != null)
+			Future future1 = null;
+			Future future2 = null;
+ 			if (numThreadsUsed <= maxThreads && pair.fst().next != null)
 			{
-	 			if (numThreadsUsed = maxThreads && pair.fst().next != null)
-				{
-					// create new thread
-					Callable th1 = new parMsortThread(pair.fst());
-					future = executor.submit(th1);
-				}
-				else	
-					head1 = msort(pair.fst());
+				// create new thread
+				Runnable th1 = new parMsortThread(pair.fst());
+				future1 = executor.submit(th1);
 			}
+			else	
+				head1 = msort(pair.fst());
 			
-			if (future != null)
+			if (numThreadsUsed <= maxThreads && pair.snd().next != null)
 			{
-				try
-				{
-					while (!future.isDone()) {
-						System.out.println("Waiting");
-						Thread.sleep(1);
-					}
-					head2 = (Node<T>)future.get();
-				} catch (InterruptedException e)
-				{ System.out.println("Whoops"); }
-				catch (ExecutionException e)
-				{ System.out.println("Whoops"); }		
+				// create new thread
+				Runnable th2 = new parMsortThread(pair.snd());
+				future2 = executor.submit(th2);
 			}
-
-			if (pair.snd() != null)
+			else
+				head2 = msort(pair.snd());
+			
+			if (future1 != null)
 			{
-				if (numThreadsUsed = maxThreads && pair.snd().next != null)
-				{
-					// create new thread
-					Callable th2 = new parMsortThread(pair.snd());
-					future = executor.submit(th2);
-				}
-				else
-					head2 = msort(pair.snd());
+					while (!future1.isDone())
+					{}
+					head1 = (Node<T>)future1.get();			
 			}
-			if (future != null)
+			if (future2 != null)
 			{
-				try
-				{
-					while (!future.isDone()) {
-						System.out.println("Waiting");
-						Thread.sleep(1);
-					}
-					head2 = (Node<T>)future.get();
-				} catch (InterruptedException e)
-				{ System.out.println("Whoops"); }
-				catch (ExecutionException e)
-				{ System.out.println("Whoops"); }
+					while (!future2.isDone())
+					{}
+					head2 = (Node<T>)future2.get();							
 			}		
 			
 			// merge... but dont attempt to merge until BOTH results are availiable		
 			return merge(head1, head2);
 		}
 		
-private class parMsortThread<T extends Comparable<T>> implements Callable {
+private class parMsortThread<T extends Comparable<T>> implements Runnable {
 
 	Node<T> head;
 	
-	public parMsortThread(Node<T> head) {
+	parMsortThread(Node<T> head) {
 		this.head = head;
 	}
 	
 	@Override
-	public Node<T> call() {
+	public void run() {
 			// Every time a new thread is run we increment the threads used counter
 			numThreadsUsed++;
 			Pair<Node<T>,Node<T>> pair = split(head);
 			
 			Node<T> head1 = null;
 			Node<T> head2 = null;
-			Future<Node<T>> future = null;
-			if (pair.fst() != null)
+			Future future1 = null;
+			Future future2 = null;
+ 			if (numThreadsUsed <= maxThreads && pair.fst().next != null)
 			{
-	 			if (numThreadsUsed = maxThreads && pair.fst().next != null)
-				{
-					// create new thread
-					Callable th1 = new parMsortThread(pair.fst());
-					future = executor.submit(th1);
-				}
-				else	
-					head1 = msort(pair.fst());
+				// create new thread
+				Runnable th1 = new parMsortThread(pair.fst());
+				future1 = executor.submit(th1);
 			}
+			else	
+				head1 = msort(pair.fst());
+			
+			if (numThreadsUsed <= maxThreads && pair.snd().next != null)
+			{
+				// create new thread
+				Runnable th2 = new parMsortThread(pair.snd());
+				future2 = executor.submit(th2);
+			}
+			else
+				head2 = msort(pair.snd());
 				
-			if (future != null)
+			if (future1 != null)
 			{
-				try
-				{
-					while (!future.isDone()) {
-						System.out.println("Waiting");
-						Thread.sleep(1);
-					}
-					head2 = (Node<T>)future.get();
-				} catch (InterruptedException e)
-				{ System.out.println("Whoops"); }
-				catch (ExecutionException e)
-				{ System.out.println("Whoops"); }		
+					while (!future1.isDone())
+					{}
+					head1 = (Node<T>)future1.get();							
 			}
-
-			if (pair.snd() != null)
+			if (future2 != null)
 			{
-				if (numThreadsUsed = maxThreads && pair.snd().next != null)
-				{
-					// create new thread
-					Callable th2 = new parMsortThread(pair.snd());
-					future = executor.submit(th2);
-				}
-				else
-					head2 = msort(pair.snd());
-			}
-			if (future != null)
-			{
-				try
-				{
-					while (!future.isDone()) {
-						System.out.println("Waiting");
-						Thread.sleep(1);
-					}
-					head2 = (Node<T>)future.get();
-				} catch (InterruptedException e)
-				{ System.out.println("Whoops"); }
-				catch (ExecutionException e)
-				{ System.out.println("Whoops"); }
+					while (!future2.isDone())
+					{}
+					head2 = (Node<T>)future2.get();			
 			}
 
 			
 			numThreadsUsed--;
 			// merge... but dont attempt to merge until BOTH results are availiable			
-			return merge(head1, head2);
+			head = merge(head1, head2);
 	}
 }
 		

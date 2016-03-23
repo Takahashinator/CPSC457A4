@@ -117,7 +117,6 @@ public class RandomTests {
         }
     }
 
-	/*
 	@Test
     public void sort_list_par() {
         Random r = new Random();
@@ -154,7 +153,6 @@ public class RandomTests {
             }
         }
     }
-	*/
 	
     @Test
     public void sort_lots_of_small_random_lists_in_serial() {
