@@ -47,11 +47,11 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		private Node head;
 		//Tail
 		private Node tail;
-		private static int maxThreads = 4;
+		private static int maxThreads = 10;
 		//Size (not required)
 		private int size;
 		//Critical Section
-		private ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
+		private static ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
 		private static int numThreadsUsed = 0; // Must be protected in critical section!
  
 	//Constructor
@@ -105,7 +105,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
     }
 	
 	//Adds a new node to the list at the end (tail)
-    public <T extends Comparable<T>> LinkedList<T> append(T t) {
+    public LinkedList<T> append(T t) {
 		if (t == null)
 			return this;
 		Node<T> newNode = new Node();
@@ -141,12 +141,12 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 				return null;
 		}
 		
-		return (T)pointer.contents;
+		return pointer.contents;
     }
 	
 	
 	@Override
-    public <T extends Comparable> Iterator<T> iterator() {
+    public Iterator<T> iterator() {
 		Iterator<T> it = new Iterator<T>() {
             private Node<T> ptr = head;
 
@@ -307,18 +307,20 @@ private class parMsortThread<T extends Comparable<T>> implements Runnable {
 	}
 	
 	@Override
-	public <T extends Comparable<T>> Node<T> run() {
+	public void run() {
 			// Every time a new thread is run we increment the threads used counter
 			numThreadsUsed++;
 			Pair<Node<T>,Node<T>> pair = split(head);
 			
-			Node<T> head1;
-			Node<T> head2;
+			Node<T> head1 = null;
+			Node<T> head2 = null;
+			Future future1;
+			Future future2;
  			if (numThreadsUsed >= maxThreads && pair.fst().next != null)
 			{
 				// create new thread
 				Runnable th1 = new parMsortThread(pair.fst());
-				head1 = executor.submit(th1);
+				future1 = executor.submit(th1);
 			}
 			else	
 				head1 = msort(pair.fst());
@@ -327,14 +329,14 @@ private class parMsortThread<T extends Comparable<T>> implements Runnable {
 			{
 				// create new thread
 				Runnable th2 = new parMsortThread(pair.snd());
-				head2 = executor.submit(th2);
+				future2 = executor.submit(th2);
 			}
 			else
 				head2 = msort(pair.snd());
 			
 			numThreadsUsed--;
 			// merge... but dont attempt to merge until BOTH results are availiable			
-			return merge(head1, head2);
+			head = merge(head1, head2);
 	}
 }
 		

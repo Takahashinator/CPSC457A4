@@ -2,7 +2,7 @@ package cpsc457;
 
 public class Node<T extends Comparable<T>> {
 	public T contents;
-	public Node next;
+	public Node<T> next;
 	
 	public Node()
 	{
