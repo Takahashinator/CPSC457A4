@@ -275,8 +275,8 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			
 			Node<T> head1 = null;
 			Node<T> head2 = null;
-			Future future1 = null;
-			Future future2 = null;
+			Future<Node<T>> future1 = null;
+			Future<Node<T>> future2 = null;
 			
 			if (pair.fst() != null)
  				if (numThreadsUsed < maxThreads && pair.fst().next != null)
