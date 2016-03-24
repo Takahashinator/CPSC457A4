@@ -61,6 +61,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		size = 0;
     }
 	
+	// test method to print out linked lists
 	public <T extends Comparable<T>> void printContents()
 	{
 		acquireLLLock();
@@ -154,6 +155,20 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		return pointer.contents;
     }
 	
+	// Goes from the head to the end of the list and sets the tail to the last node
+	public void setTail()
+	{
+		acquireLLLock();
+		Node<T> pointer = head;
+		while (pointer.next != null)
+		{
+			pointer = pointer.next;
+		}
+		tail = pointer;
+		releaseLLLock();
+	}
+	
+	
 	private void acquireLLLock()
 	{
 		try
@@ -161,7 +176,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			LLAlterationLock.acquire();
 		} catch (InterruptedException e) 
 		{
-			// Uncertain what to do in this case...
+			// Uncertain what to do in this case, but Java requires...
 			e.printStackTrace();
 		}
 	}
@@ -260,6 +275,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			Node<T> sortedHead = msort(list.head);	
 
 			list.head = sortedHead;
+			list.setTail();
 		}
 		
 		// Recursive method for sorting a list
@@ -309,6 +325,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			{
 				e.printStackTrace();
 			}
+			list.setTail();
 		}		
 		
 		// This is the main worker thread for the paralell msort
@@ -403,7 +420,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 				numThreadsUsed++;
 			} catch (InterruptedException e) 
 			{
-				// Uncertain what to do in this case...
+				// Uncertain what to do in this case, but Java requires...
 				e.printStackTrace();
 			} finally
 			{
@@ -421,7 +438,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			} 
 			catch (InterruptedException e) 
 			{
-				// Uncertain what to do in this case...
+				// Uncertain what to do in this case, but Java requires...
 				e.printStackTrace();
 			} finally
 			{
@@ -439,7 +456,7 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			Node<T> walker1 = node;
 			Node<T> walker2 = node;
 			
-			// Just covering the bases if the list happens to be empty
+			// Covering the bases if the list happens to be empty
 			if (node == null)
 				return new Pair(null,null);
 			
@@ -459,7 +476,8 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		public <T extends Comparable<T>> Node<T> merge(Node<T> head1, Node<T> head2)
 		{
 			Node<T> headPointer; // pointer to keep track of the head node so return can be easy
-			Node<T> walkPointer;
+			Node<T> walkPointer; // walks through the list and sets up the new linked list
+			
 			// Check some specific conditions
 			if (head1 == null && head2 == null)
 				return null;
@@ -469,48 +487,48 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 				return head1;
 
 			// Setup the pointers
-			Node<T> leftPointer = head1;
-			Node<T> rightPointer = head2;
+			Node<T> leftComparePointer = head1;
+			Node<T> rightComparePointer = head2;
 			if (head1.contents.compareTo(head2.contents) < 0)
 			{
-				headPointer = head1;
-				walkPointer = head1;
-				leftPointer = leftPointer.next;
+				headPointer = leftComparePointer;
+				walkPointer = leftComparePointer;
+				leftComparePointer = leftComparePointer.next;
 			}
 			else
 			{
-				headPointer = head2;
-				walkPointer = head2;
-				rightPointer = rightPointer.next;
+				headPointer = rightComparePointer;
+				walkPointer = rightComparePointer;
+				rightComparePointer = rightComparePointer.next;
 			}
 
-			while (leftPointer != null && rightPointer != null)
+			while (leftComparePointer != null && rightComparePointer != null)
 			{
 				// Both pointers have a value
 				// Assuming here ASCENDING order from head.
-				if (leftPointer.contents.compareTo(rightPointer.contents) < 0)
+				if (leftComparePointer.contents.compareTo(rightComparePointer.contents) < 0)
 				{
-					walkPointer.next = leftPointer;
-					leftPointer = leftPointer.next;
+					walkPointer.next = leftComparePointer;
+					leftComparePointer = leftComparePointer.next;
 				}
 				else
 				{
-					walkPointer.next = rightPointer;
-					rightPointer = rightPointer.next;
+					walkPointer.next = rightComparePointer;
+					rightComparePointer = rightComparePointer.next;
 				}
 				// walkPointer walks...
 				walkPointer = walkPointer.next;
 			}
 
 			// If there are still nodes on the right but not on the left
-			if (leftPointer == null && rightPointer != null)
+			if (leftComparePointer == null && rightComparePointer != null)
 			{
-				walkPointer.next = rightPointer;
+				walkPointer.next = rightComparePointer;
 			}
 			// If there are still nodes on the left but not on the right
-			else if (rightPointer == null && leftPointer != null)
+			else if (rightComparePointer == null && leftComparePointer != null)
 			{
-				walkPointer.next = leftPointer;
+				walkPointer.next = leftComparePointer;
 			}
 
 			return headPointer;
