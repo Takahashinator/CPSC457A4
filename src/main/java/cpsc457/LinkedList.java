@@ -43,29 +43,27 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 	//############
 	
 	//Variables (attributes)
-		//Head
-		private Node head;
-		//Tail
-		private Node tail;
-		private static int maxThreads = 10;
-		//Size (not required)
-		private int size;
-		//Critical Section
-		private static ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
-		private static int numThreadsUsed = 0; // Must be protected in critical section!
+	private Node head;
+	private Node tail;
+	private int size;
+		
+	// Linked List Concurrency Control
+	// Only one thread will be able to alter the linked list at any time
+	private static Semaphore LLAlterationLock = new Semaphore(1);
  
 	//Constructor
-    public LinkedList() {
+    public LinkedList() 
+	{
 		//Set head and tail to null
 		head = null;
 		tail = null;
 		//Set size to zero
 		size = 0;
-		//Create new instance for the critical section
     }
 	
 	public <T extends Comparable<T>> void printContents()
 	{
+		acquireLLLock();
 		Node<T> ptr = head;
 		while (ptr != null)
 		{
@@ -74,18 +72,22 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			System.console().writer().print("]-");
 			ptr = ptr.next;
 		}
+		
 		System.console().writer().println("");
+		releaseLLLock();
 	}
 
 	//Returns the size of the list
-    public int size() {
+    public int size() 
+	{
         return size; //either iterate through all the list and count
 					//or create an attribute that stores the size and changes
 					//every time we add or remove a node
     }
 	
 	//Checks if the list is empty
-	public boolean isEmpty() {
+	public boolean isEmpty() 
+	{
 		if (size == 0)
 			return true;
 		else
@@ -93,21 +95,22 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
     }
 	
 	//Deletes all the nodes in the list
-	public void clear() {
+	public void clear() 
+	{
+		acquireLLLock();
 		//just set the head and tail to null (the garbage collector takes care of the rest)
 		head = null;
 		tail = null;
-			//cpp developers: be careful, you have to destroy them first
-		
-		//What if the merge sort is running now in a thread
-			//I should not be able to delete the nodes (and vice versa)
-			//Thus run this and everything else in a critical section
+		releaseLLLock();
     }
 	
 	//Adds a new node to the list at the end (tail)
-    public LinkedList<T> append(T t) {
+    public LinkedList<T> append(T t) 
+	{
 		if (t == null)
 			return this;
+		
+		acquireLLLock();
 		Node<T> newNode = new Node();
 		newNode.contents = t;
 		//Check if it is empty 
@@ -123,40 +126,68 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		
 		//Do not forget to increment the size by 1 (if you have it as an attribute)
 		size++;
-		
+		releaseLLLock();
 		return this;
     }
 
-	//Gets a node's value at a specific index
-    public <T extends Comparable<T>> T get(int index) {
-		//Iterate through the list
-			//Create a new pointer that starts at the head
+	// Gets a node's value at a specific index
+	// Note - this method is not used in our implementation
+    public <T extends Comparable<T>> T get(int index) 
+	{
+		acquireLLLock();
+		//Create a new pointer that starts at the head
 		Node<T> pointer = head;
-			//Keeps moving forward (pt = pt.next) for index times
+		//Keeps moving forward (pt = pt.next) for index times
 		for(int i = 0; i <= index; i++)
 		{
 			pointer = pointer.next;
 		//Make sure not to exceed the size of the list (else return null)
 			if(pointer.contents == null)
+			{
+				// Make sure to release in this case
+				LLAlterationLock.release();
 				return null;
+			}
 		}
 		
+		releaseLLLock();		
 		return pointer.contents;
     }
 	
+	private void acquireLLLock()
+	{
+		try
+		{
+			LLAlterationLock.acquire();
+		} catch (InterruptedException e) 
+		{
+			// Uncertain what to do in this case...
+			e.printStackTrace();
+		}
+	}
+	
+	private void releaseLLLock()
+	{
+		LLAlterationLock.release();
+	}
+	
 	
 	@Override
-    public Iterator<T> iterator() {
-		Iterator<T> it = new Iterator<T>() {
+    public Iterator<T> iterator() 
+	{
+		Iterator<T> it = new Iterator<T>() 
+		{
             private Node<T> ptr = head;
 
             @Override
-            public boolean hasNext() {
+            public boolean hasNext() 
+			{
                 return (ptr != null && ptr.next != null);
             }
 
             @Override
-            public T next() {
+            public T next() 
+			{
 				if (ptr != null)
 				{
 					T val = (T)ptr.contents;
@@ -168,7 +199,8 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
             }
 
             @Override
-            public void remove() {
+            public void remove() 
+			{
                 throw new UnsupportedOperationException();
             }
         };
@@ -182,7 +214,8 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 	//(we only have merge sort in this assignment)
 	
 	//Sorts the link list in serial
-    private void sort(Comparator<T> comp) {
+    private void sort(Comparator<T> comp) 
+	{
 	
 		new MergeSort<T>(comp).sort(this); //Run this within the critical section (as discussed before)
 		
@@ -191,33 +224,35 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
     }
 
 	//Sorts the link list in parallel (using multiple threads)
-    private void par_sort(Comparator<T> comp) {
+    private void par_sort(Comparator<T> comp) 
+	{
 		new MergeSort<T>(comp).parallel_sort(this); //Run this within the critical section (as discussed before)
     }
 
 	//Merge sort
-    public static class MergeSort<T extends Comparable> {
+    public static class MergeSort<T extends Comparable> 
+	{
 	
-		//Variables (attributes)
-			//ExecutorService
-			//Depth limit
+		//Variables (attributes)			
+		private static int maxThreads = 10;
+		private static ExecutorService executor = Executors.newFixedThreadPool(maxThreads);
+		private static int numThreadsUsed = 0; // Must be protected in critical section!
+		private static Semaphore threadAccessLock = new Semaphore(1);
 	
 		//Comparison function
 		final Comparator<T> comp;
-
+		
 		//Constructor
-		public MergeSort(Comparator<T> comp) {
+		public MergeSort(Comparator<T> comp) 
+		{
 			this.comp = comp;
 		}
-
-		//#####################
-		//# Sorting functions #
-		//#####################
-		//The next two functions will simply call the correct function 
-		//to merge sort the link list and then they will fix its 
-		//attributes (head and tail pointers)
 		
-		public <T extends Comparable<T>> void sort(LinkedList<T> list) {
+		// The entry level method for the serial msort
+		// A generic linked list is provided and the head is set to the newly 
+		// sorted linked list
+		public <T extends Comparable<T>> void sort(LinkedList<T> list) 
+		{
 			// Check if there is only one node
 			if (list.size <= 1)
 				return;	
@@ -227,6 +262,9 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			list.head = sortedHead;
 		}
 		
+		// Recursive method for sorting a list
+		// The head of the linked list is provided and
+		// the head of the sorted list is returned
 		public <T extends Comparable<T>> Node msort(Node head)
 		{	
 			// Split the list
@@ -249,177 +287,152 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 			return merge(head1, head2);			
 		}
 
+		// The entry level method for the paralell msort
+		// A generic linked list is provided and the head is set to the newly 
+		// sorted linked list
 		public <T extends Comparable<T>> void parallel_sort(LinkedList<T> list) 
 		{
 			if (list.size <= 1)
 				return;	
 			
-			//int maxdepth = calcMaxDepth(list);
-			Node<T> sortedHead = par_msort(list.head);	
+			Callable th = new parMsortThread(list.head);
+			Future future = executor.submit(th);
 
-			list.head = sortedHead;
-		}
+			try
+			{
+				list.head = (Node<T>)future.get();
+			} catch (InterruptedException e) 
+			{
+				list.head = null;
+				e.printStackTrace();
+			} catch (ExecutionException e)
+			{
+				e.printStackTrace();
+			}
+		}		
 		
-/* 		public int calcMaxDepth(LinkedList<T> list)
+		// This is the main worker thread for the paralell msort
+		// The call method returns the head node of the sorted list and works recursively
+		// A counter is used to keep track of the number of threads currently in use
+		// If all the threads are used up, the current thread will perform the rest
+		// of the calculations in serial
+		private class parMsortThread<T extends Comparable<T>> implements Callable 
 		{
-			//TODO Determine max depth using some calculation
-			// *note* this can also be done dynamically, making this
-			// method redundant
-			return 0;
-		} */
-		
-		// Local par_msort method only to be used on the top level merge
-		public <T extends Comparable<T>> Node<T> par_msort(Node<T> head)
-		{	
-			Pair<Node<T>,Node<T>> pair = split(head);
+
+			Node<T> head;
 			
-			Node<T> head1 = null;
-			Node<T> head2 = null;
-			Future<Node<T>> future1 = null;
-			Future<Node<T>> future2 = null;
-			
-			if (pair.fst() != null)
- 				if (numThreadsUsed < maxThreads && pair.fst().next != null)
-				{
-					// create new thread
-					Callable th1 = new parMsortThread(pair.fst());
-					future1 = executor.submit(th1);
-				}
-				else	
-					head1 = msort(pair.fst());
-			
-			if (pair.snd() != null)
-				if (numThreadsUsed < maxThreads && pair.snd().next != null)
-				{
-					// create new thread
-					Callable th2 = new parMsortThread(pair.snd());
-					future2 = executor.submit(th2);
-				}
-				else
-					head2 = msort(pair.snd());
-			
-			if (future1 != null)
+			parMsortThread(Node<T> head) 
 			{
-				try
-				{
-					head1 = (Node<T>)future1.get();
-				} catch (InterruptedException e) 
-				{
-        			e.printStackTrace();
-      		} catch (ExecutionException e) {
-        			e.printStackTrace();
-      		}
+				this.head = head;
 			}
-			if (future2 != null)
+			
+			@Override
+			public Node<T> call() 
 			{
-				try
-				{
-					head2 = (Node<T>)future2.get();
-				} catch (InterruptedException e) 
-				{
-        			e.printStackTrace();
-      		} catch (ExecutionException e) {
-        			e.printStackTrace();
-      		}	
-			}		
-			// merge... but dont attempt to merge until BOTH results are available		
-			return merge(head1, head2);
+					// Every time a new thread is run we increment the threads used counter
+					safeIncrementThreadUse();
+					Pair<Node<T>,Node<T>> pair = split(head);
+					Node<T> head1 = null;
+					Node<T> head2 = null;
+					Future<Node<T>> future1 = null;
+					Future<Node<T>> future2 = null;
+					
+					if (pair.fst() != null)
+						if (numThreadsUsed < maxThreads && pair.fst().next != null)
+						{
+							// create new thread
+							Callable th1 = new parMsortThread(pair.fst());
+							future1 = executor.submit(th1);
+						}
+						else	
+							head1 = msort(pair.fst());
+							
+					
+					if (pair.snd() != null)
+						if (numThreadsUsed < maxThreads && pair.snd().next != null)
+						{
+							// create new thread
+							Callable th2 = new parMsortThread(pair.snd());
+							future2 = executor.submit(th2);
+						}
+						else				
+							head2 = msort(pair.snd());
+											
+					if (future1 != null)
+					{
+						try
+						{
+							head1 = (Node<T>)future1.get();
+						} catch (InterruptedException e) 
+						{
+							e.printStackTrace();
+						} catch (ExecutionException e)
+						{
+							e.printStackTrace();
+						}
+					}
+					if (future2 != null)
+					{
+						try
+						{
+							head2 = (Node<T>)future2.get();
+						} catch (InterruptedException e) 
+						{
+							e.printStackTrace();
+						} catch (ExecutionException e)
+						{
+							e.printStackTrace();
+						}
+					}
+					// merge... but dont attempt to merge until BOTH results are available	
+					Node<T> result = merge(head1, head2);
+					safeDecrementThreadUse();		
+					return result;
+			}
 		}
 		
-private class parMsortThread<T extends Comparable<T>> implements Callable {
-
-	Node<T> head;
-	
-	parMsortThread(Node<T> head) {
-		this.head = head;
-	}
-	
-	@Override
-	public Node<T> call() {
-			// Every time a new thread is run we increment the threads used counter
-			numThreadsUsed++;
-			Pair<Node<T>,Node<T>> pair = split(head);
-			Node<T> head1 = null;
-			Node<T> head2 = null;
-			Future<Node<T>> future1 = null;
-			Future<Node<T>> future2 = null;
-			
-			if (pair.fst() != null)
- 				if (numThreadsUsed < maxThreads && pair.fst().next != null)
-				{
-					// create new thread
-					Callable th1 = new parMsortThread(pair.fst());
-					future1 = executor.submit(th1);
-				}
-				else	
-					head1 = msort(pair.fst());
-					
-			
-			if (pair.snd() != null)
-				if (numThreadsUsed < maxThreads && pair.snd().next != null)
-				{
-					// create new thread
-					Callable th2 = new parMsortThread(pair.snd());
-					future2 = executor.submit(th2);
-				}
-				else				
-					head2 = msort(pair.snd());
-									
-			if (future1 != null)
+		//----------------------//
+		// Concurrency Functions//	
+		//----------------------//
+		
+		private void safeIncrementThreadUse()
+		{
+			try
 			{
-				try
-				{
-					head1 = (Node<T>)future1.get();
-				} catch (InterruptedException e) 
-				{
-        			e.printStackTrace();
-      		} catch (ExecutionException e) {
-        			e.printStackTrace();
-      		}
-			}
-			if (future2 != null)
+				threadAccessLock.acquire();
+				numThreadsUsed++;
+			} catch (InterruptedException e) 
 			{
-				try
-				{
-					head2 = (Node<T>)future2.get();
-				} catch (InterruptedException e) 
-				{
-        			e.printStackTrace();
-      		} catch (ExecutionException e) {
-        			e.printStackTrace();
-      		}
+				// Uncertain what to do in this case...
+				e.printStackTrace();
+			} finally
+			{
+				// Should always release just in case
+				threadAccessLock.release();
 			}
-			// merge... but dont attempt to merge until BOTH results are available	
-			Node<T> result = merge(head1, head2);
-			numThreadsUsed--;		
-			return result;
-	}
-}
+		}
 		
-		//#########
-		//# Steps #
-		//#########
+		private void safeDecrementThreadUse()
+		{
+			try
+			{
+				threadAccessLock.acquire();
+				numThreadsUsed--;
+			} 
+			catch (InterruptedException e) 
+			{
+				// Uncertain what to do in this case...
+				e.printStackTrace();
+			} finally
+			{
+				// Should always release just in case
+				threadAccessLock.release();
+			}
+		}
 		
-		//The main merge sort function (parrallel_msort and msort)
-			//Split the list to two parts
-			//Merge sort each part
-			//Merge the two sorted parts together
-		
-		//Splitting function
-			//Run two pointers and find the middle of the a specific list
-			//Create two new lists (and break the link between them)
-			//It should return pair (the two new lists)
-		
-		//Merging function
-			//1- Keep comparing the head of the two link lists
-			//2- Move the smallest node to the new merged link list
-			//3- Move the head on the list that lost this node
-			
-			//4- Once one of the two lists is done, append the rest of the 
-			//	 second list to the tail of the new merged link list
-			
-			
-		// Helper Functions	
+		//-----------------//
+		// Helper Functions//	
+		//-----------------//
 		public <T extends Comparable<T>> Pair<Node<T>,Node<T>> split(Node<T> node)
 		{
 			Node<T> a = node;
@@ -443,10 +456,11 @@ private class parMsortThread<T extends Comparable<T>> implements Callable {
 		}
 		
 		// merges two linked lists and returns the merged list head
-		public <T extends Comparable<T>> Node<T> merge(Node<T> head1, Node<T> head2){
-			Node<T> headPointer;
+		public <T extends Comparable<T>> Node<T> merge(Node<T> head1, Node<T> head2)
+		{
+			Node<T> headPointer; // pointer to keep track of the head node so return can be easy
 			Node<T> walkPointer;
-			// Check some specifit conditions
+			// Check some specific conditions
 			if (head1 == null && head2 == null)
 				return null;
 			if (head1 == null)
@@ -473,7 +487,7 @@ private class parMsortThread<T extends Comparable<T>> implements Callable {
 			while (leftPointer != null && rightPointer != null)
 			{
 				// Both pointers have a value
-				// Assuming here DESCENDING list from head.
+				// Assuming here ASCENDING order from head.
 				if (leftPointer.contents.compareTo(rightPointer.contents) < 0)
 				{
 					walkPointer.next = leftPointer;
