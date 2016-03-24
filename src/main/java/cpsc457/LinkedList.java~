@@ -229,21 +229,24 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		
 		public <T extends Comparable<T>> Node msort(Node head)
 		{	
+			System.console().writer().println("USING PLAIN OLD MSORT");
 			// Split the list
 			Pair<Node<T>,Node<T>> pair = split(head);
 			
-			Node<T> head1;
-			Node<T> head2;
-			if (pair.fst().next != null)
-				head1 = msort(pair.fst());
-			else
-				head1 = pair.fst();
-			
-			if (pair.snd().next != null)
-				head2 = msort(pair.snd());
-			else
-				head2 = pair.snd();
-			
+			Node<T> head1 = null;
+			Node<T> head2 = null;
+			if (pair.fst() != null)
+				if (pair.fst().next != null)
+					head1 = msort(pair.fst());
+				else
+					head1 = pair.fst();
+					
+			if (pair.snd() != null)
+				if (pair.snd().next != null)
+					head2 = msort(pair.snd());
+				else
+					head2 = pair.snd();
+			System.console().writer().println("ENDING PLAIN OLD MSORT");
 			// Time to merge!
 			return merge(head1, head2);			
 		}
@@ -270,48 +273,64 @@ public class LinkedList<T extends Comparable<T>> implements Iterable<T> {
 		// Local par_msort method only to be used on the top level merge
 		public <T extends Comparable<T>> Node<T> par_msort(Node<T> head)
 		{	
+			System.console().writer().println("STARTING PARMSORT TOP LEVEL");
 			Pair<Node<T>,Node<T>> pair = split(head);
 			
 			Node<T> head1 = null;
 			Node<T> head2 = null;
 			Future future1 = null;
 			Future future2 = null;
- 			if (numThreadsUsed <= maxThreads && pair.fst().next != null)
-			{
-				// create new thread
-				Runnable th1 = new parMsortThread(pair.fst());
-				future1 = executor.submit(th1);
-			}
-			else	
-				head1 = msort(pair.fst());
 			
-			if (numThreadsUsed <= maxThreads && pair.snd().next != null)
-			{
-				// create new thread
-				Runnable th2 = new parMsortThread(pair.snd());
-				future2 = executor.submit(th2);
-			}
-			else
-				head2 = msort(pair.snd());
+			if (pair.fst() != null)
+ 				if (numThreadsUsed < maxThreads && pair.fst().next != null)
+				{
+					// create new thread
+					Callable th1 = new parMsortThread(pair.fst());
+					future1 = executor.submit(th1);
+				}
+				else	
+					head1 = msort(pair.fst());
+			
+			if (pair.snd() != null)
+				if (numThreadsUsed < maxThreads && pair.snd().next != null)
+				{
+					// create new thread
+					Callable th2 = new parMsortThread(pair.snd());
+					future2 = executor.submit(th2);
+				}
+				else
+					head2 = msort(pair.snd());
 			
 			if (future1 != null)
 			{
-					while (!future1.isDone())
-					{}
-					head1 = (Node<T>)future1.get();			
+				try
+				{
+					head1 = (Node<T>)future1.get();
+				} catch (InterruptedException e) 
+				{
+        			e.printStackTrace();
+      		} catch (ExecutionException e) {
+        			e.printStackTrace();
+      		}
 			}
 			if (future2 != null)
 			{
-					while (!future2.isDone())
-					{}
-					head2 = (Node<T>)future2.get();							
+				try
+				{
+					head2 = (Node<T>)future2.get();
+				} catch (InterruptedException e) 
+				{
+        			e.printStackTrace();
+      		} catch (ExecutionException e) {
+        			e.printStackTrace();
+      		}	
 			}		
-			
-			// merge... but dont attempt to merge until BOTH results are availiable		
+			System.console().writer().println("ENDING PARMSORT TOP LEVEL");
+			// merge... but dont attempt to merge until BOTH results are available		
 			return merge(head1, head2);
 		}
 		
-private class parMsortThread<T extends Comparable<T>> implements Runnable {
+private class parMsortThread<T extends Comparable<T>> implements Callable {
 
 	Node<T> head;
 	
@@ -320,50 +339,69 @@ private class parMsortThread<T extends Comparable<T>> implements Runnable {
 	}
 	
 	@Override
-	public void run() {
+	public Node<T> call() {
 			// Every time a new thread is run we increment the threads used counter
 			numThreadsUsed++;
 			Pair<Node<T>,Node<T>> pair = split(head);
-			
 			Node<T> head1 = null;
 			Node<T> head2 = null;
-			Future future1 = null;
-			Future future2 = null;
- 			if (numThreadsUsed <= maxThreads && pair.fst().next != null)
-			{
-				// create new thread
-				Runnable th1 = new parMsortThread(pair.fst());
-				future1 = executor.submit(th1);
-			}
-			else	
-				head1 = msort(pair.fst());
+			Future<Node<T>> future1 = null;
+			Future<Node<T>> future2 = null;
 			
-			if (numThreadsUsed <= maxThreads && pair.snd().next != null)
-			{
-				// create new thread
-				Runnable th2 = new parMsortThread(pair.snd());
-				future2 = executor.submit(th2);
-			}
-			else
-				head2 = msort(pair.snd());
-				
+			if (pair.fst() != null)
+ 				if (numThreadsUsed < maxThreads && pair.fst().next != null)
+				{
+					System.console().writer().println("1 NEW THREAD IN CALL");
+					// create new thread
+					Callable th1 = new parMsortThread(pair.fst());
+					future1 = executor.submit(th1);
+				}
+				else	
+					head1 = msort(pair.fst());
+					
+			
+			if (pair.snd() != null)
+				if (numThreadsUsed < maxThreads && pair.snd().next != null)
+				{
+					System.console().writer().println("2 NEW THREAD IN CALL");
+					// create new thread
+					Callable th2 = new parMsortThread(pair.snd());
+					future2 = executor.submit(th2);
+				}
+				else				
+					head2 = msort(pair.snd());
+									
 			if (future1 != null)
 			{
-					while (!future1.isDone())
-					{}
-					head1 = (Node<T>)future1.get();							
+				try
+				{
+					System.console().writer().println("1 WAITING FOR GET IN CALL");
+					head1 = (Node<T>)future1.get();
+				} catch (InterruptedException e) 
+				{
+        			e.printStackTrace();
+      		} catch (ExecutionException e) {
+        			e.printStackTrace();
+      		}
 			}
 			if (future2 != null)
 			{
-					while (!future2.isDone())
-					{}
-					head2 = (Node<T>)future2.get();			
+				try
+				{
+					System.console().writer().println("2 WAITING FOR GET IN CALL");
+					head2 = (Node<T>)future2.get();
+				} catch (InterruptedException e) 
+				{
+        			e.printStackTrace();
+      		} catch (ExecutionException e) {
+        			e.printStackTrace();
+      		}
 			}
-
-			
-			numThreadsUsed--;
-			// merge... but dont attempt to merge until BOTH results are availiable			
-			head = merge(head1, head2);
+			// merge... but dont attempt to merge until BOTH results are available	
+			Node<T> result = merge(head1, head2);
+			numThreadsUsed--;		
+			System.console().writer().println("ENDING PARMSORT CALL");
+			return result;
 	}
 }
 		
