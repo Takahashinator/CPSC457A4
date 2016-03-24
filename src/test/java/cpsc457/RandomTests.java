@@ -12,7 +12,7 @@ public class RandomTests {
 
 
     // This test provides the raw materials for profiling your merge sort
-    /*@Test
+    @Test
     public void test_a_big_random_list() throws Exception {
         Random r = new Random();
         LinkedList<Integer> list = new LinkedList<Integer>();
@@ -41,7 +41,7 @@ public class RandomTests {
             i++;
         }
     }
-	*/
+
 	
 	// Testing mergesort and printing the runtime to the terminal
 	//  Note how this is the same test as above...  But for par_sort...
@@ -50,7 +50,7 @@ public class RandomTests {
         Random r = new Random();
         LinkedList<Integer> list = new LinkedList<Integer>();
 
-        for(int i=0; i<50; i++) {
+        for(int i=0; i<2e6; i++) {
             list.append(r.nextInt());
         }
 
@@ -82,7 +82,7 @@ public class RandomTests {
 
     // these tests are primarilly (but not exclusively)
     // how we will evaluate the correctness of your code
-/*
+
 	@Test
     public void sort_list_serial() {
         Random r = new Random();
@@ -116,8 +116,7 @@ public class RandomTests {
             }
         }
     }
-*/
-/*
+
 	@Test
     public void sort_list_par() {
         Random r = new Random();
@@ -154,8 +153,7 @@ public class RandomTests {
             }
         }
     }
-	*/
-	/*
+
     @Test
     public void sort_lots_of_small_random_lists_in_serial() {
         Random r = new Random();
@@ -185,7 +183,7 @@ public class RandomTests {
             }
         }
     }
-	*/
+	
     @Test
     public void testEmptyInput() {
         testFailedInput(new int[]{});
